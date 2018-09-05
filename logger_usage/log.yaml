@@ -1,0 +1,77 @@
+version: 1
+
+# 定义输出格式
+formatters:
+  debug_formatter:
+    format: '%(message)s'
+  output_formatter:
+    format: '%(asctime)s [%(pathname)s %(module)s %(funcName)s %(lineno)d] %(levelname)s: %(message)s'
+    datefmt: '%Y-%m-%d %H:%M:%S'
+
+# 定义过滤条件
+#filters:
+
+# 定义日志具体分发到具体的目的地
+handlers:
+  console_handler:
+    class: logging.StreamHandler
+    level: DEBUG
+    formatter: debug_formatter
+    stream: ext://sys.stdout
+  file_handler:
+    class : logging.FileHandler
+    level: INFO
+    formatter: output_formatter
+    filename: file_handler.log
+    encoding: utf-8
+    delay: True
+  rotate_file_handler:
+    class : logging.handlers.RotatingFileHandler
+    level: INFO
+    formatter: output_formatter
+    filename: rotate_file_handler.log
+    encoding: utf-8
+    delay: True
+    maxBytes: 1024  #单个日志文件的最大字节数，不指定的话文件就会无限增长
+    backupCount: 3  #日志文件的最多个数，和maxBytes配合使用，当日志文件大小达到指定的阈值，则会将当前文件保存为rotate_file_handler.log.1，并开启一个新的rotate_file_handler.log
+  timed_rotate_file_handler:
+    class : logging.handlers.TimedRotatingFileHandler
+    level: INFO
+    formatter: output_formatter
+    filename: timed_rotate_file_handler.log
+    encoding: utf-8
+    delay: True
+    when: D    #按天保存日志
+    interval: 1   #每天保存一个文件
+    backupCount: 30    #最多保存30天的文件
+  mail_handler:
+    class : logging.handlers.SMTPHandler
+    level: ERROR
+    formatter: output_formatter
+    mailhost: ['smtp.263.net', 25]
+    credentials: ['service16@weiboyi.com', 'wbysvc16']
+    fromaddr: service16@weiboyi.com
+    toaddrs: [gaojingbin@weiboyi.com]
+    subject: Log Log
+  dingding_handler:
+    (): logger_usage.extend_handlers.DingDingHandler
+    level: ERROR
+    formatter: output_formatter
+    webhook: https://oapi.dingtalk.com/robot/send?access_token=8b4721ad1df60f9977c876a1f1c0e1f25cb1f100252b04ca4b6ed52b0c6e6305
+    toaddrs: ['18524634325', '18613373913']
+
+loggers:
+  debug_logger:
+    handlers: [console_handler, file_handler]
+    propagate: 0
+  output_logger:
+    handlers: [rotate_file_handler]
+    propagate: 0
+  output_logger.release_logger:
+    handlers: [mail_handler, dingding_handler]
+    propagate: 1
+
+# 默认的root logger的配置
+root:
+  level: NOTSET
+  handlers: [console_handler, file_handler]
