@@ -1,5 +1,4 @@
 from simhash import Simhash, SimhashIndex
-import re
 
 # simhash
 str0 = 'The Apache Hadoop software library is a framework that allows for the distributed processing large data'
